@@ -23,7 +23,8 @@
   "homepage": "https://github.com/nguyenhuutuong999/nodejs-blog#readme",
   "dependencies": {
     "express": "4.17.1",
-    "express-handlebars": "^5.3.0"
+    "express-handlebars": "^5.3.0",
+    "node-sass": "^5.0.0"
   },
   "devDependencies": {
     "morgan": "^1.10.0",
