@@ -7,6 +7,7 @@ const Course = new Schema({
     image: {type: String, maxlength: 255},
     createAt:{type: Date, default: Date.now},
     updateAt:{type: Date, default: Date.now},
+    slug: {type: String}
 
 
 })
