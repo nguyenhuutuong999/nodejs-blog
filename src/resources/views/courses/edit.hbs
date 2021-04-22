@@ -1,0 +1,14 @@
+<div class="col-sm-4 mt-4 ml-4">
+    <h1>Edit Course</h1>
+    <form action="/courses/{{course._id}}?_method=PUT" method="POST">
+        <div class="form-group">
+            <label for="nameInput">Name</label>
+            <input type="text" class="form-control" value = {{course.name}} id="nameInput" name="name">
+        </div>
+        <div class="form-group">
+            <label for="descriptionInput">Description</label>
+            <input type="text" class="form-control" value = {{course.description}} id="descriptionInput" name="description">
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
