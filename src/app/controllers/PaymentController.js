@@ -3,8 +3,27 @@ const { multipleMongoosesToObject } = require("../../util/mongoose");
 const uuidv1 = require("uuid/v1");
 const https = require("https");
 const firebaseApp = require("./../../config/db/firebase");
+const config = require('./../../config/db/default.json');
+const sortObject = (o) => {
+  var sorted = {},
+    key, a = [];
+
+  for (key in o) {
+    if (o.hasOwnProperty(key)) {
+      a.push(key);
+    }
+  }
+
+  a.sort();
+
+  for (key = 0; key < a.length; key++) {
+    sorted[a[key]] = o[a[key]];
+  }
+  return sorted;
+}
 class PaymentController {
-  create(request, response, next) {
+
+  momo(request, response, next) {
     //parameters send to MoMo get get payUrl
     var endpoint =
       "https://test-payment.momo.vn/gw_payment/transactionProcessor";
@@ -14,7 +33,7 @@ class PaymentController {
     var accessKey = "ArJY3B0zEJuJlaID";
     var serectkey = "kFiLbcvI4ihPZ4jrUseCqqa4yOJcyNiu";
     var orderInfo = "pay with MoMo";
-    var returnUrl = "http://localhost:3000/payment";
+    var returnUrl = "http://localhost:3001/payment/result";
     var notifyurl = "https://callback.url/notify";
     var amount = request.body.value.toString();
     var orderId = uuidv1();
@@ -100,7 +119,134 @@ class PaymentController {
     req.write(body);
     req.end();
   }
-  success(req, res, next) {
+
+  vnpay(req, res, next) {
+    var ipAddr = req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      req.connection.socket.remoteAddress;
+
+
+    var dateFormat = require('dateformat');
+
+    var tmnCode = config.vnp_TmnCode;
+    var secretKey = config.vnp_HashSecret;
+    var vnpUrl = config.vnp_Url;
+    var returnUrl = config.vnp_ReturnUrl;
+
+    var date = new Date();
+
+    var createDate = dateFormat(date, 'yyyymmddHHmmss');
+    var orderId = dateFormat(date, 'HHmmss');
+    var amount = req.body.value.toString();
+    var bankCode = '';
+
+    var orderInfo = 'Top Up';
+    var orderType = 'topup';
+    var locale = 'vn';
+    if (locale === null || locale === '') {
+      locale = 'vn';
+    }
+    var currCode = 'VND';
+    var vnp_Params = {};
+    vnp_Params['vnp_Version'] = '2';
+    vnp_Params['vnp_Command'] = 'pay';
+    vnp_Params['vnp_TmnCode'] = tmnCode;
+    // vnp_Params['vnp_Merchant'] = ''
+    vnp_Params['vnp_Locale'] = locale;
+    vnp_Params['vnp_CurrCode'] = currCode;
+    vnp_Params['vnp_TxnRef'] = orderId;
+    vnp_Params['vnp_OrderInfo'] = orderInfo;
+    vnp_Params['vnp_OrderType'] = orderType;
+    vnp_Params['vnp_Amount'] = amount*100;
+    vnp_Params['vnp_ReturnUrl'] = returnUrl;
+    vnp_Params['vnp_IpAddr'] = ipAddr;
+    vnp_Params['vnp_CreateDate'] = createDate;
+    if (bankCode !== null && bankCode !== '') {
+      vnp_Params['vnp_BankCode'] = bankCode;
+    }
+
+    vnp_Params = sortObject(vnp_Params);
+
+    var querystring = require('qs');
+    var signData = secretKey + querystring.stringify(vnp_Params, { encode: false });
+
+    var sha256 = require('sha256');
+
+    var secureHash = sha256(signData);
+
+    vnp_Params['vnp_SecureHashType'] = 'SHA256';
+    vnp_Params['vnp_SecureHash'] = secureHash;
+    vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: true });
+    //Neu muon dung Redirect thi dong dong ben duoi
+    //res.status(200).json({ code: '00', data: vnpUrl })
+    //Neu muon dung Redirect thi mo dong ben duoi va dong dong ben tren
+    res.json(vnpUrl);
   }
+
+  vnpaySuccess(req, res, next) {
+    var vnp_Params = req.query;
+
+    var secureHash = vnp_Params['vnp_SecureHash'];
+
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    var tmnCode = config.vnp_TmnCode;
+    var secretKey = config.vnp_HashSecret;
+
+    var querystring = require('qs');
+    var signData = secretKey + querystring.stringify(vnp_Params, { encode: false });
+
+    var sha256 = require('sha256');
+
+    var checkSum = sha256(signData);
+
+    if (secureHash === checkSum) {
+      //Kiem tra xem du lieu trong db co hop le hay khong va thong bao ket qua
+
+      res.render('success', { code: vnp_Params['vnp_ResponseCode'] })
+    } else {
+      res.render('success', { code: '97' })
+    }
+  }
+  result(req, res, next) {
+    let statusCode = req.params.errorCode?req.params.errorCode:(req.params.vnp_ResponseCode?req.params.vnp_ResponseCode:null)
+    let amount = req.params.amount?req.params.amount:(req.params.vnp_Amount?req.params.vnp_Amount:null)
+    console.log(amount)
+    if (statusCode) {
+    firebaseApp
+      .ref("User/information/parkingMan/idrootsv1")
+      .once("value", (snapshot) => {
+        firebaseApp
+          .ref("User/information/parkingMan/")
+          .child("idrootsv1")
+          .update({
+            money: (
+              parseInt(snapshot.val().money) + parseInt(amount)
+            ).toString(),
+          });
+      });
+
+    firebaseApp
+      .ref("History/parkingMan/moneyTopUp")
+      .child("idrootsv1")
+      .set({
+        idPay: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        value: parseInt(amount).toString(),
+        createAt: Date.now().toLocaleString(),
+        method: 1,
+        isNoti: false,
+        fee: 0,
+      });
+    }
+    res.status(200).json({
+      message: "Payment Success !!!",
+      redirectUrl: "http://localhost:3000/payment/success"
+     })
+  }
+
 }
 module.exports = new PaymentController();
