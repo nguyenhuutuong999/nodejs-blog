@@ -3,6 +3,7 @@ const { mongooseToObject } = require("../../util/mongoose");
 
 class CourseController {
   show(req, res, next) {
+    console.log(req.params)
     Course.findOne({ slug: req.params.slug })
     .then(course => res.render('courses/show', {course: mongooseToObject(course)}))
     .catch(next);

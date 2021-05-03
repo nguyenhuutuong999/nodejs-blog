@@ -25,6 +25,7 @@
   "homepage": "https://github.com/nguyenhuutuong999/nodejs-blog#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dateformat": "^2.2.0",
     "express": "4.17.1",
     "express-handlebars": "^5.3.0",
     "firebase": "^8.4.2",
@@ -34,7 +35,6 @@
     "mongoose-delete": "^0.5.3",
     "mongoose-slug-generator": "^1.0.4",
     "node-sass": "^5.0.0",
-    "dateformat": "^2.2.0",
     "qs": "^6.7.0",
     "sha256": "^0.2.0"
   },

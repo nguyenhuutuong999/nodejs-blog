@@ -35,7 +35,7 @@ class PaymentController {
     var orderInfo = "pay with MoMo";
     var returnUrl = "http://localhost:3001/payment/result";
     var notifyurl = "https://callback.url/notify";
-    var amount = request.body.value.toString();
+    var amount = (request.body.value).toString();
     var orderId = uuidv1();
     var requestId = uuidv1();
     var requestType = "captureMoMoWallet";
@@ -138,7 +138,7 @@ class PaymentController {
 
     var createDate = dateFormat(date, 'yyyymmddHHmmss');
     var orderId = dateFormat(date, 'HHmmss');
-    var amount = req.body.value.toString();
+    var amount = (req.body.value);
     var bankCode = '';
 
     var orderInfo = 'Top Up';
@@ -213,10 +213,10 @@ class PaymentController {
     }
   }
   result(req, res, next) {
-    let statusCode = req.params.errorCode?req.params.errorCode:(req.params.vnp_ResponseCode?req.params.vnp_ResponseCode:null)
-    let amount = req.params.amount?req.params.amount:(req.params.vnp_Amount?req.params.vnp_Amount:null)
-    console.log(amount)
-    if (statusCode) {
+    let statusCode = req.query.errorCode?req.query.errorCode:(req.query.vnp_ResponseCode?req.query.vnp_ResponseCode:null)
+    let method = req.query.errorCode?1:(req.query.vnp_ResponseCode?0:-1)
+    let amount = req.query.amount?req.query.amount:(req.query.vnp_Amount?req.query.vnp_Amount/100:null)
+    if (statusCode == '0' || statusCode == '00') {
     firebaseApp
       .ref("User/information/parkingMan/idrootsv1")
       .once("value", (snapshot) => {
@@ -229,23 +229,33 @@ class PaymentController {
             ).toString(),
           });
       });
-
+      var datetime = new Date();
+      console.log(datetime.toISOString())
+      
     firebaseApp
       .ref("History/parkingMan/moneyTopUp")
       .child("idrootsv1")
-      .set({
+      .push({
         idPay: Date.now().toString(36) + Math.random().toString(36).substr(2),
         value: parseInt(amount).toString(),
-        createAt: Date.now().toLocaleString(),
-        method: 1,
+        createAt: new Date().toISOString(),
+        method: method,
         isNoti: false,
         fee: 0,
       });
+      res.status(301).redirect("http://localhost:3000/payment/?status=0&value="+amount)
     }
-    res.status(200).json({
-      message: "Payment Success !!!",
-      redirectUrl: "http://localhost:3000/payment/success"
-     })
+    else{
+      res.status(301).redirect("http://localhost:3000/payment/?status=1")
+    }
+    
+    // res.set('location', 'http://localhost:3000/payment/');
+    // res.json(302, {value: 1000});
+    // // status(200).json({
+    // //   message: "Payment Success !!!",
+    // //   redirectUrl: "http://localhost:3000/payment/success",
+    // //   value: amount,
+    // //  })
   }
 
 }
