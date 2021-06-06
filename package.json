@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "beautiful": "prettier --single-quote --trailing-comma all --write 'src/**/*.{js,json,scss}'",
-    "start": "node index.js",
+    "start": "node src/index.js",
     "watch": "node-sass src/resources/scss/app.scss src/public/css/app/css",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
