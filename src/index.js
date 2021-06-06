@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const path = require('path')
 const handlebars = require('express-handlebars');
 const hostname = 'localhost';
-const port = process.env.PORT | 3001;
+const port = process.env.PORT || 3001;
 const app = express();
 const route = require("./routes");
 const methodOverride = require('method-override');
@@ -36,12 +36,6 @@ app.set('views', path.join(__dirname, 'resources', 'views'))
 
 //routes inits
 route(app);
-
-// const server = http.createServer((req, res) => {
-//   res.statusCode = 200;
-//   res.setHeader('Content-Type', 'text/plain');
-//   res.end('Hello, World!\n');
-// });
 
 app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);

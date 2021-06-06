@@ -1,9 +1,9 @@
 const Course = require("../models/Course");
-const { multipleMongoosesToObject } = require("../../util/mongoose");
 const uuidv1 = require("uuid/v1");
 const https = require("https");
 const firebaseApp = require("./../../config/db/firebase");
 const config = require('./../../config/db/default.json');
+
 const sortObject = (o) => {
   var sorted = {},
     key, a = [];
@@ -33,7 +33,7 @@ class PaymentController {
     var accessKey = "ArJY3B0zEJuJlaID";
     var serectkey = "kFiLbcvI4ihPZ4jrUseCqqa4yOJcyNiu";
     var orderInfo = "pay with MoMo";
-    var returnUrl = "http://localhost:3001/payment/result";
+    var returnUrl = "https://dsparking.herokuapp.com/payment/result";
     var notifyurl = "https://callback.url/notify";
     var amount = (request.body.value).toString();
     var orderId = uuidv1();
