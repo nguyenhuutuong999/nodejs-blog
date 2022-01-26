@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/nguyenhuutuong999/nodejs-blog#readme",
   "dependencies": {
-    "node" : "15.10.0",
     "cors": "^2.8.5",
     "dateformat": "^2.2.0",
     "express": "4.17.1",
