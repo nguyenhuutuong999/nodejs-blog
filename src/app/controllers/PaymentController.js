@@ -33,7 +33,7 @@ class PaymentController {
     var accessKey = "ArJY3B0zEJuJlaID";
     var serectkey = "kFiLbcvI4ihPZ4jrUseCqqa4yOJcyNiu";
     var orderInfo = "pay with MoMo";
-    var returnUrl = "https://dsparking.herokuapp.com/payment/result";
+    var returnUrl = "http://localhost:8080/note";
     var notifyurl = "https://callback.url/notify";
     var amount = (request.body.value).toString();
     var orderId = uuidv1();
